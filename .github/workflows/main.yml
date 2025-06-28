@@ -1,0 +1,229 @@
+# Web Search with OpenAI Chat Completions API
+
+You can enable models to search the web for the latest information before generating a response using the `gpt-4o-search-preview` or `gpt-4o-mini-search-preview` models. This is done via the `web_search_options` parameter.
+
+## Basic Usage Example
+
+**JavaScript:**
+```javascript
+import OpenAI from "openai";
+const client = new OpenAI();
+
+const completion = await client.chat.completions.create({
+    model: "gpt-4o-search-preview",
+    web_search_options: {},
+    messages: [{
+        "role": "user",
+        "content": "What was a positive news story from today?"
+    }],
+});
+
+console.log(completion.choices[0].message.content);
+```
+
+**Python:**
+```python
+from openai import OpenAI
+client = OpenAI()
+
+completion = client.chat.completions.create(
+    model="gpt-4o-search-preview",
+    web_search_options={},
+    messages=[
+        {
+            "role": "user",
+            "content": "What was a positive news story from today?",
+        }
+    ],
+)
+
+print(completion.choices[0].message.content)
+```
+
+**cURL:**
+```bash
+curl -X POST "https://api.openai.com/v1/chat/completions" \
+    -H "Authorization: Bearer $OPENAI_API_KEY" \
+    -H "Content-type: application/json" \
+    -d '{
+        "model": "gpt-4o-search-preview",
+        "web_search_options": {},
+        "messages": [{
+            "role": "user",
+            "content": "What was a positive news story from today?"
+        }]
+    }'
+```
+
+---
+
+## Output and Citations
+
+The API response includes:
+- `message.content` with the text result (containing inline citations)
+- `annotations` with a list of cited URLs
+
+Example:
+```json
+[
+    {
+        "index": 0,
+        "message": {
+            "role": "assistant",
+            "content": "the model response is here...",
+            "refusal": null,
+            "annotations": [
+                {
+                    "type": "url_citation",
+                    "url_citation": {
+                        "end_index": 985,
+                        "start_index": 764,
+                        "title": "Page title...",
+                        "url": "https://..."
+                    }
+                }
+            ]
+        },
+        "finish_reason": "stop"
+    }
+]
+```
+
+**Note:** When displaying web results or information from web results to users, inline citations must be clearly visible and clickable.
+
+---
+
+## User Location for Search Refinement
+
+You can specify an approximate user location to refine search results.
+
+**Python Example:**
+```python
+completion = client.chat.completions.create(
+    model="gpt-4o-search-preview",
+    web_search_options={
+        "user_location": {
+            "type": "approximate",
+            "approximate": {
+                "country": "GB",
+                "city": "London",
+                "region": "London",
+            }
+        },
+    },
+    messages=[{
+        "role": "user",
+        "content": "What are the best restaurants around Granary Square?",
+    }],
+)
+```
+
+**JavaScript Example:**
+```javascript
+const completion = await client.chat.completions.create({
+    model: "gpt-4o-search-preview",
+    web_search_options: {
+        user_location: {
+            type: "approximate",
+            approximate: {
+                country: "GB",
+                city: "London",
+                region: "London",
+            },
+        },
+    },
+    messages: [{
+        "role": "user",
+        "content": "What are the best restaurants around Granary Square?",
+    }],
+});
+```
+
+**cURL Example:**
+```bash
+curl -X POST "https://api.openai.com/v1/chat/completions" \
+    -H "Authorization: Bearer $OPENAI_API_KEY" \
+    -H "Content-type: application/json" \
+    -d '{
+        "model": "gpt-4o-search-preview",
+        "web_search_options": {
+            "user_location": {
+                "type": "approximate",
+                "approximate": {
+                    "country": "GB",
+                    "city": "London",
+                    "region": "London"
+                }
+            }
+        },
+        "messages": [{
+            "role": "user",
+            "content": "What are the best restaurants around Granary Square?"
+        }]
+    }'
+```
+
+---
+
+## Search Context Size
+
+The `search_context_size` parameter controls how much web content is retrieved:
+
+- `high`: Most comprehensive (highest cost, slowest)
+- `medium`: Balanced (default)
+- `low`: Fastest, least content (lowest cost)
+
+**Python Example:**
+```python
+completion = client.chat.completions.create(
+    model="gpt-4o-search-preview",
+    web_search_options={
+        "search_context_size": "low",
+    },
+    messages=[{
+        "role": "user",
+        "content": "What movie won best picture in 2025?",
+    }],
+)
+```
+
+**JavaScript Example:**
+```javascript
+const completion = await client.chat.completions.create({
+    model: "gpt-4o-search-preview",
+    web_search_options: {
+        search_context_size: "low",
+    },
+    messages: [{
+        "role": "user",
+        "content": "What movie won best picture in 2025?",
+    }],
+});
+```
+
+**cURL Example:**
+```bash
+curl -X POST "https://api.openai.com/v1/chat/completions" \
+    -H "Authorization: Bearer $OPENAI_API_KEY" \
+    -H "Content-type: application/json" \
+    -d '{
+        "model": "gpt-4o-search-preview",
+        "web_search_options": {
+            "search_context_size": "low"
+        },
+        "messages": [{
+            "role": "user",
+            "content": "What movie won best picture in 2025?"
+        }]
+    }'
+```
+
+---
+
+## Notes and Limitations
+
+- Web search is not supported in the `gpt-4.1-nano` model.
+- Supported only in `gpt-4o-search-preview` and `gpt-4o-mini-search-preview` for Chat Completions.
+- Search context does **not** count toward the model's context window.
+- Pricing varies by context size (see [pricing page](https://platform.openai.com/docs/pricing)).
+- See [OpenAI Docs](https://platform.openai.com/docs/) for more information.
