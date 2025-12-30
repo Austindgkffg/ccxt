@@ -1,6 +1,9 @@
 {
   "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {}
+  "features": {
+    "ghcr.io/lee-orr/rusty-dev-containers/helix:0": {},
+    "ghcr.io/kreemer/features/helix:1": {}
+  }
 }include 'ccxt.php';
 
 $poloniex = new \ccxt\poloniex ();
